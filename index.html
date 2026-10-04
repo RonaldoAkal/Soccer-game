@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wildroot Alchemy — Pixel Edition</title>
+<style>
+:root{--bg:#101713;--panel:#19231d;--panel2:#223027;--ink:#f4efd8;--muted:#aeb9a8;--green:#72b35e;--gold:#e4b85c;--red:#c96c5c}
+*{box-sizing:border-box}html,body{margin:0;background:#0b100d;color:var(--ink);font-family:"Courier New",monospace}
+body{min-height:100vh;padding:18px}button{font:inherit;color:inherit;cursor:pointer}
+#game{max-width:1180px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;border:4px solid #344539;background:var(--panel);padding:12px;box-shadow:6px 6px 0 #050806}
+.logo{display:flex;gap:12px;align-items:center}.logo-icon{width:48px;height:48px;background:#477c46;border:3px solid #91c17c;display:grid;place-items:center;font-size:26px}
+h1,h2,h3,p{margin:0}.title{font-size:22px;color:#fff7d2;text-shadow:2px 2px #000}.subtitle{font-size:11px;color:var(--muted);margin-top:3px}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.chip,.btn{border:3px solid #526453;background:#27352b;padding:8px 11px;box-shadow:3px 3px 0 #080b09;font-weight:bold;font-size:12px}.btn:hover{background:#34483a}.btn.gold{background:#6c5525;border-color:#a98742}.btn.green{background:#315c38;border-color:#63975c}
+.screen{margin-top:16px;border:4px solid #344539;background:#152019;padding:12px;box-shadow:6px 6px 0 #050806}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{border:3px solid #465749;background:#1f2b23;padding:9px 15px}.tab.active{background:#3d6d42;border-color:#7db16b}
+#world{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px}.map-wrap{border:4px solid #506052;background:#0d1510;padding:7px}.map-head{display:flex;justify-content:space-between;align-items:center;padding:6px 4px 9px}.map-head h2{font-size:16px}.map-head span{font-size:11px;color:#b8c7af}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;background:#315337;border:3px solid #1c2b1e}
+.side{display:flex;flex-direction:column;gap:12px}.panel{border:4px solid #465749;background:var(--panel);padding:12px}.panel h3{font-size:14px;color:#f9df8d;margin-bottom:9px}.help{font-size:11px;line-height:1.6;color:var(--muted)}
+.resource-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}.resource{border:2px solid #465749;background:#202d25;padding:7px;font-size:10px;min-height:43px}.resource b{color:#d7edc9}
+#lab,#journal{display:none}.labgrid{display:grid;grid-template-columns:330px 1fr;gap:12px}.cauldron{border:4px solid #465749;background:#131b16;padding:16px;text-align:center}.slots{display:grid;grid-template-columns:1fr 35px 1fr;gap:8px;align-items:center;margin:12px 0}.slot{height:92px;border:3px dashed #627062;background:#202b23;display:grid;place-items:center}.slot .big{font-size:31px}.plus{font-size:20px}.brew{width:100%;margin-top:12px;background:#73592a;border:3px solid #ad8a43;padding:12px;font-weight:bold}.elements{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px;max-height:410px;overflow:auto}.el{border:3px solid #465749;background:#202c24;padding:9px;text-align:left}.el:hover{border-color:#7db16b;background:#29392e}.el .ico{font-size:24px}.el b{display:block;font-size:11px;margin-top:5px}.el small{color:#8fa08f;font-size:9px}
+.journal{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}.card{border:3px solid #465749;background:#202c24;padding:12px;min-height:125px}.card.locked{opacity:.38}.card .ico{font-size:28px}.card h3{font-size:13px;margin:5px 0}.card p{font-size:10px;line-height:1.45;color:#9daa9c}
+.guide{border:4px solid #465749;background:#18221c;padding:14px;margin-top:12px}.guide h2{font-size:17px;color:#f5d986;margin-bottom:9px}.guide ol{margin:0;padding-left:22px;color:#b7c3b5;font-size:11px;line-height:1.7}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,120px);background:#0c130f;border:3px solid #759269;padding:10px 15px;box-shadow:4px 4px #000;transition:.2s;z-index:20;font-size:12px}.toast.show{transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:30}.modal.hidden{display:none}.modalbox{max-width:430px;width:100%;border:5px solid #596b59;background:#18231c;box-shadow:8px 8px #000;padding:20px;text-align:center}.modalbox .discover{font-size:64px;margin:12px}.modalbox h2{font-size:25px;color:#ffe29a}.modalbox p{font-size:11px;color:#adb9a9;line-height:1.6;margin:8px 0 15px}
+@media(max-width:850px){#world,.labgrid{grid-template-columns:1fr}.top{align-items:flex-start}.hud{justify-content:flex-start}.resource-list{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){body{padding:7px}.title{font-size:17px}.top{flex-direction:column}.hud{width:100%}.map-head{display:block}.tabs{overflow:auto}.tab{white-space:nowrap}.elements{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="game">
+  <header class="top">
+    <div class="logo"><div class="logo-icon">⚗</div><div><div class="title">WILDROOT ALCHEMY</div><div class="subtitle">PIXEL EDITION • explore the living elements</div></div></div>
+    <div class="hud">
+      <div class="chip">DISCOVERED: <span id="count">0</span>/<span id="total">0</span></div>
+      <button class="btn" id="guideBtn">HOW TO PLAY</button>
+      <button class="btn" id="resetBtn">RESET</button>
+    </div>
+  </header>
+
+  <section class="screen">
+    <nav class="tabs">
+      <button class="tab active" data-tab="world">🗺 WORLD</button>
+      <button class="tab" data-tab="lab">⚗ ALCHEMY LAB</button>
+      <button class="tab" data-tab="journal">📖 JOURNAL</button>
+    </nav>
+
+    <div id="world">
+      <div class="map-wrap">
+        <div class="map-head"><h2 id="mapName">VERDANT GROVE</h2><span>Move: WASD / ARROWS • Gather: SPACE</span></div>
+        <canvas id="map" width="640" height="400" aria-label="Pixel art exploration map"></canvas>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px">
+          <button class="btn green" id="gather">🌿 GATHER NEARBY</button>
+          <button class="btn" id="mapLeft">◀ PREV MAP</button><button class="btn" id="mapRight">NEXT MAP ▶</button>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="panel"><h3>🌱 CURRENT MISSION</h3><div class="help" id="mission">Explore the grove and gather natural ingredients. Walk close to plants and press SPACE.</div></div>
+        <div class="panel"><h3>📦 GATHERED ESSENCES</h3><div class="resource-list" id="resources"></div></div>
+        <div class="panel"><h3>🧑‍🌾 ALCHEMIST</h3><div class="help">Your little field alchemist can roam the map. Walk close to glowing resources to collect them.</div></div>
+      </aside>
+    </div>
+
+    <div id="lab">
+      <div class="labgrid">
+        <div class="cauldron">
+          <h3>ACTIVE RECIPE</h3>
+          <div class="slots">
+            <div class="slot" id="slotA"><div><div class="big">＋</div><small>INGREDIENT I</small></div></div>
+            <div class="plus">+</div>
+            <div class="slot" id="slotB"><div><div class="big">＋</div><small>INGREDIENT II</small></div></div>
+          </div>
+          <div style="font-size:55px">⚗</div>
+          <div class="help" id="labMessage">Choose two discovered elements and brew.</div>
+          <button class="brew" id="brew">⚗ BREW ELEMENT</button>
+          <button class="btn" style="width:100%;margin-top:8px" id="clear">CLEAR SLOTS</button>
+        </div>
+        <div class="panel"><h3>DISCOVERED ELEMENTS</h3><div class="elements" id="elements"></div></div>
+      </div>
+    </div>
+
+    <div id="journal"><div class="journal" id="journalGrid"></div></div>
+  </section>
+
+  <div class="guide" id="guide">
+    <h2>🌿 QUICK GUIDE</h2>
+    <ol><li>Explore the pixel-art maps with your character.</li><li>Walk near a natural resource and press SPACE, or click GATHER NEARBY.</li><li>Visit the Alchemy Lab and choose two discovered elements.</li><li>Press BREW to discover new elements.</li><li>Use the three maps to find ingredients needed for deeper recipes.</li></ol>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal hidden" id="discoverModal"><div class="modalbox"><div>✦ NEW DISCOVERY ✦</div><div class="discover" id="discoverIcon">🌱</div><h2 id="discoverName">SPROUT</h2><p id="discoverDesc"></p><button class="btn green" id="closeDiscover">ADD TO JOURNAL</button></div></div>
+
+<script>
+(() => {
+"use strict";
+
+const maps=[
+ {name:"VERDANT GROVE",bg:"#315337",mission:"Explore the grove and gather natural ingredients. Walk close to plants and press SPACE.",resources:[
+  {x:110,y:90,n:"Seed",i:"🌱",c:"#9fc56d"},{x:260,y:125,n:"Leaf",i:"🍃",c:"#62a454"},{x:465,y:80,n:"Wood",i:"🌳",c:"#855c3b"},
+  {x:175,y:285,n:"Flower",i:"🌸",c:"#e38ba0"},{x:430,y:290,n:"Mushroom",i:"🍄",c:"#d46c58"}]},
+ {name:"MOONLIT WETLANDS",bg:"#274a4d",mission:"Find water, stones, rain, mist and lotus blossoms in the marsh.",resources:[
+  {x:100,y:110,n:"Water",i:"💧",c:"#66b8d4"},{x:300,y:85,n:"Stone",i:"🪨",c:"#929b91"},{x:500,y:125,n:"Rain",i:"🌧️",c:"#789ac9"},
+  {x:180,y:290,n:"Mist",i:"🌫️",c:"#c5d8d0"},{x:455,y:295,n:"Lotus",i:"🪷",c:"#df8eb6"}]},
+ {name:"SKYROOT HIGHLANDS",bg:"#425b69",mission:"Climb the highlands to collect sun, wind, ember, frost and feathers.",resources:[
+  {x:110,y:85,n:"Sun",i:"☀️",c:"#e8bd54"},{x:280,y:135,n:"Wind",i:"💨",c:"#b7d7df"},{x:490,y:85,n:"Fire",i:"🔥",c:"#db684d"},
+  {x:170,y:295,n:"Frost",i:"❄️",c:"#b7e4ef"},{x:470,y:285,n:"Feather",i:"🪶",c:"#e8e2ca"}]}
+];
+
+const elements={
+ Seed:["🌱","A tiny beginning carrying the promise of life.",1],Leaf:["🍃","A green fragment of living nature.",1],Wood:["🌳","Strong fiber from an ancient tree.",1],
+ Flower:["🌸","A bloom filled with color and scent.",1],Mushroom:["🍄","A forest recycler thriving in damp soil.",1],Water:["💧","The flowing essence of living things.",1],
+ Stone:["🪨","Earth compressed into enduring mineral.",1],Rain:["🌧️","Water returned from the sky.",1],Mist:["🌫️","Water suspended between earth and air.",1],
+ Lotus:["🪷","A flower that rises clean from muddy water.",1],Sun:["☀️","Radiant energy that wakes the world.",1],Wind:["💨","Invisible motion crossing the open sky.",1],
+ Fire:["🔥","Heat given form.",1],Frost:["❄️","Cold that crystallizes water.",1],Feather:["🪶","A light token carried by the wind.",1],
+ Sprout:["🌿","Life awakened by water and earth."],Vine:["🌿","A living thread that climbs toward light."],Moss:["🟢","Soft green life that binds water and stone."],
+ Mud:["🟤","Earth softened by water."],Steam:["♨️","Water lifted by the kiss of heat."],Cloud:["☁️","A drifting vessel of water in the sky."],
+ Sunflower:["🌻","A golden bloom that follows the sun."],Tree:["🌲","A great union of life, wood and leaf."],Crystal:["💎","Mineral made luminous by frost and time."],
+ Ash:["🪵","The quiet remains of a flame."],Pollen:["✨","Golden dust carrying life from flower to flower."],Garden:["🏡","A small ecosystem shaped by care."],
+ Storm:["⛈️","Rain and wind dancing together."],Rainbow:["🌈","Light refracted through water droplets."],Life:["💚","The hidden force connecting the living world."]
+};
+
+const recipes={
+ "Seed+Water":"Sprout","Water+Seed":"Sprout","Sprout+Wood":"Vine","Wood+Sprout":"Vine","Leaf+Vine":"Tree","Vine+Leaf":"Tree",
+ "Water+Stone":"Mud","Stone+Water":"Mud","Water+Fire":"Steam","Fire+Water":"Steam","Steam+Wind":"Cloud","Wind+Steam":"Cloud",
+ "Rain+Wind":"Storm","Wind+Rain":"Storm","Mist+Sun":"Rainbow","Sun+Mist":"Rainbow","Rain+Sun":"Rainbow","Sun+Rain":"Rainbow",
+ "Flower+Sun":"Sunflower","Sun+Flower":"Sunflower","Wood+Fire":"Ash","Fire+Wood":"Ash","Frost+Stone":"Crystal","Stone+Frost":"Crystal",
+ "Flower+Wind":"Pollen","Wind+Flower":"Pollen","Mushroom+Water":"Moss","Water+Mushroom":"Moss","Lotus+Mud":"Life","Mud+Lotus":"Life",
+ "Tree+Flower":"Garden","Flower+Tree":"Garden","Wind+Water":"Mist","Water+Wind":"Mist","Pollen+Seed":"Life","Seed+Pollen":"Life",
+ "Life+Wood":"Tree","Wood+Life":"Tree","Cloud+Sun":"Rainbow","Sun+Cloud":"Rainbow","Ash+Water":"Mud","Water+Ash":"Mud"
+};
+
+const natural=Object.keys(elements).filter(k=>elements[k][2]);
+let discovered=[...natural], slots=[null,null], currentMap=0, collected={}, player={x:320,y:200,dir:1,step:0};
+let toastTimer=0;
+
+const $=s=>document.querySelector(s), canvas=$("#map"), ctx=canvas.getContext("2d");
+ctx.imageSmoothingEnabled=false;
+
+function toast(s){const t=$("#toast");t.textContent=s;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200)}
+function drawPixelRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function drawMap(){
+ const m=maps[currentMap];ctx.fillStyle=m.bg;ctx.fillRect(0,0,640,400);
+ // pixel-art ground tiles
+ for(let y=0;y<400;y+=16)for(let x=0;x<640;x+=16){if(((x/16+y/16+currentMap)%5)===0)drawPixelRect(x,y,2,2,"#ffffff12")}
+ // paths / terrain
+ if(currentMap===0){drawPixelRect(0,185,640,30,"#7c6948");drawPixelRect(285,0,35,400,"#7c6948");}
+ if(currentMap===1){drawPixelRect(0,170,640,50,"#37656a");drawPixelRect(230,0,55,400,"#37656a");}
+ if(currentMap===2){for(let i=0;i<8;i++){drawPixelRect(i*90,330-(i%2)*20,80,60,"#657c69")}}
+ // trees / rocks background
+ for(let x=25;x<640;x+=70){const y=30+(x*13%100); if(currentMap!==1){drawPixelRect(x,y,13,25,"#543d2d");drawPixelRect(x-8,y-16,29,22,currentMap===2?"#6b8e66":"#487247")}}
+ maps[currentMap].resources.forEach((r,i)=>{
+   const near=Math.hypot(player.x-r.x,player.y-r.y)<42;
+   drawPixelRect(r.x-10,r.y+9,20,5,"#17221999");
+   drawPixelRect(r.x-7,r.y-7,14,16,r.c);
+   drawPixelRect(r.x-11,r.y-3,22,8,r.c);
+   ctx.font="22px serif";ctx.textAlign="center";ctx.fillText(r.i,r.x,r.y+4);
+   if(near){ctx.strokeStyle="#ffe49a";ctx.lineWidth=2;ctx.strokeRect(r.x-17,r.y-18,34,35);ctx.font="10px monospace";ctx.fillStyle="#fff3b5";ctx.fillText("SPACE",r.x,r.y-23)}
+ });
+ // player: pixel person
+ const p=player;drawPixelRect(p.x-7,p.y-15,14,10,"#e8b38c");drawPixelRect(p.x-8,p.y-5,16,19,"#355d8a");
+ drawPixelRect(p.x-9,p.y-18,18,5,"#b98b43");drawPixelRect(p.x-6,p.y+14,5,8,"#493b34");drawPixelRect(p.x+1,p.y+14,5,8,"#493b34");
+ drawPixelRect(p.x+(p.dir>0?7:-10),p.y-2,4,12,"#e8b38c");
+ ctx.font="9px monospace";ctx.textAlign="center";ctx.fillStyle="#fff";ctx.fillText("ALCHEMIST",p.x,p.y-29);
+}
+function nearby(){return maps[currentMap].resources.find(r=>Math.hypot(player.x-r.x,player.y-r.y)<48)}
+function gather(){
+ const r=nearby();
+ if(!r){toast("Walk closer to a glowing resource.");return}
+ collected[r.n]=(collected[r.n]||0)+1;
+ if(!discovered.includes(r.n))discovered.push(r.n);
+ toast("Collected "+r.n+" "+r.i);
+ renderAll();
+}
+function updatePlayer(dx,dy){
+ player.x=Math.max(18,Math.min(622,player.x+dx));player.y=Math.max(24,Math.min(375,player.y+dy));player.dir=dx<0?-1:dx>0?1:player.dir;player.step++;drawMap();
+}
+window.addEventListener("keydown",e=>{
+ const tag=document.activeElement?.tagName;if(["INPUT","TEXTAREA","SELECT"].includes(tag))return;
+ let dx=0,dy=0;if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")dx=-7;if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")dx=7;if(e.key==="ArrowUp"||e.key.toLowerCase()==="w")dy=-7;if(e.key==="ArrowDown"||e.key.toLowerCase()==="s")dy=7;
+ if(dx||dy){e.preventDefault();updatePlayer(dx,dy)}if(e.code==="Space"){e.preventDefault();gather()}
+});
+$("#gather").onclick=gather;
+$("#mapLeft").onclick=()=>{currentMap=(currentMap+maps.length-1)%maps.length;player.x=320;player.y=200;renderAll()};
+$("#mapRight").onclick=()=>{currentMap=(currentMap+1)%maps.length;player.x=320;player.y=200;renderAll()};
+
+function renderResources(){
+ $("#resources").innerHTML=maps[currentMap].resources.map(r=>`<div class="resource"><b>${r.i} ${r.n}</b><br>${collected[r.n]||0} collected</div>`).join("");
+}
+function renderElements(){
+ $("#elements").innerHTML=discovered.map(n=>`<button class="el" data-el="${n}"><span class="ico">${elements[n][0]}</span><b>${n}</b><small>${elements[n][2]?"NATURAL":"CREATED"}</small></button>`).join("");
+ document.querySelectorAll(".el").forEach(b=>b.onclick=()=>addSlot(b.dataset.el));
+}
+function renderSlots(){
+ [0,1].forEach(i=>{const el=i?$("#slotB"):$("#slotA"),n=slots[i];el.innerHTML=n?`<div><div class="big">${elements[n][0]}</div><small>${n}</small></div>`:`<div><div class="big">＋</div><small>INGREDIENT ${i+1}</small></div>`});
+}
+function addSlot(n){if(!slots[0])slots[0]=n;else if(!slots[1])slots[1]=n;else slots=[n,null];renderSlots()}
+$("#clear").onclick=()=>{slots=[null,null];renderSlots()};
+$("#brew").onclick=()=>{
+ if(!slots[0]||!slots[1]){toast("Choose two ingredients first.");return}
+ const key=slots[0]+"+"+slots[1],result=recipes[key];
+ if(!result){$("#labMessage").textContent="No reaction. Try a different pairing.";toast("No reaction — experiment again!");return}
+ if(!discovered.includes(result)){discovered.push(result);slots=[result,null];$("#discoverIcon").textContent=elements[result][0];$("#discoverName").textContent=result.toUpperCase();$("#discoverDesc").textContent=elements[result][1];$("#discoverModal").classList.remove("hidden");}
+ else{slots=[result,null];toast("You recreated "+result+"!")}
+ renderAll();
+};
+$("#closeDiscover").onclick=()=>$("#discoverModal").classList.add("hidden");
+
+function renderJournal(){
+ $("#journalGrid").innerHTML=Object.keys(elements).map(n=>{const got=discovered.includes(n);return `<div class="card ${got?"":"locked"}"><div class="ico">${got?elements[n][0]:"❔"}</div><h3>${got?n:"UNKNOWN ELEMENT"}</h3><p>${got?elements[n][1]:"Discover this element through exploration and alchemy."}</p></div>`}).join("");
+}
+function renderAll(){
+ $("#mapName").textContent=maps[currentMap].name;$("#mission").textContent=maps[currentMap].mission;
+ $("#count").textContent=discovered.length;$("#total").textContent=Object.keys(elements).length;
+ renderResources();renderElements();renderSlots();renderJournal();drawMap();
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");["world","lab","journal"].forEach(id=>$("#"+id).style.display=id===t.dataset.tab?"grid":"none")});
+$("#guideBtn").onclick=()=>$("#guide").scrollIntoView({behavior:"smooth"});
+$("#resetBtn").onclick=()=>{if(confirm("Reset your discoveries and collected resources?")){discovered=[...natural];slots=[null,null];collected={};currentMap=0;renderAll();toast("Journal reset.")}};
+renderAll();
+})();
+</script>
+</body>
+</html>
